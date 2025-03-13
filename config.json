@@ -1,17 +1,29 @@
 {
-    "group1": {
-        "name": "led_control",
-        "data": ["state", "brightness"],
-        "type": "function"
+    "functions": {
+        "group1": {
+            "name": "led_control",
+            "data": ["state", "brightness"],
+            "type": "function"
+        },
+        "group2": {
+            "name": "get_temperature",
+            "data": [],
+            "type": "show"
+        },
+        "group3": {
+            "name": "restart",
+            "data": [],
+            "type": "function"
+        }
     },
-    "group2": {
-        "name": "get_temperature",
-        "data": [],
-        "type": "show"
-    },
-    "group3": {
-        "name": "restart",
-        "data": [],
-        "type": "function"
+    "WIFI": {
+        "sta": [
+            {"ssid": "", "password": ""}
+        ],
+        "ap": {
+            "ssid": "your_ap_ssid",
+            "password": "your_ap_password",
+            "encryption": "WPA2"
+        }
     }
 }
