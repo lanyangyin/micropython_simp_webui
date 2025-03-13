@@ -1,16 +1,17 @@
 {
+    "function_list": ["led_control", "get_temperature", "restart"],
     "functions": {
-        "group1": {
+        "led_control": {
             "name": "led_control",
             "data": ["state", "brightness"],
             "type": "function"
         },
-        "group2": {
+        "get_temperature": {
             "name": "get_temperature",
             "data": [],
             "type": "show"
         },
-        "group3": {
+        "restart": {
             "name": "restart",
             "data": [],
             "type": "function"

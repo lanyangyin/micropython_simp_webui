@@ -1,11 +1,9 @@
 import ujson
-import urequests
 import network
 import usocket
 import utime
 import random
 import machine
-from machine import Pin
 
 
 # 预定义函数示例（需与config.json中的name对应）
@@ -125,8 +123,9 @@ def generate_html():
             .then(t => document.getElementById(id).innerHTML = t)
         }}
     </script></head><body>"""
-
-    for group_id, group in fun_config.items():
+    for group_id in config['function_list']:
+        group = fun_config[group_id]
+    # for group_id, group in fun_config.items():
         html += f'<div class="group"><h3>🔹 {group["name"].upper()}</h3>'
 
         if group['type'] == 'function':
@@ -145,9 +144,14 @@ def generate_html():
 
 # 网络服务
 def start_webserver():
-    wlan = network.WLAN(network.STA_IF)
-    print('IP:', wlan.ifconfig()[0])
-
+    STA = network.WLAN(network.STA_IF)
+    AP = network.WLAN(network.AP_IF)
+    if STA.isconnected():
+        print('STA_IP:', STA.ifconfig()[0])
+    else:
+        print('STA_IP: None')
+    if AP.active():
+        print('AP_IP:', AP.ifconfig()[0])
     s = usocket.socket()
     s.bind(('0.0.0.0', 80))
     s.listen(5)
