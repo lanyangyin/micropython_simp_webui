@@ -5,8 +5,23 @@ import utime
 import random
 import machine
 
+AUTH_MODES = {
+    "OPEN": 0,
+    "WEP": 1,
+    "WPA": 2,
+    "WPA2": 3,
+    "WPA/WPA2": 4
+}
+
 
 # 预定义函数示例（需与config.json中的name对应）
+def ap_start(ssid, password, encryption):
+    ap = network.WLAN(network.AP_IF)
+    ap.active(True)
+    encryption = AUTH_MODES[encryption]
+    ap.config(essid=ssid, authmode=encryption, password=password)
+
+
 def led_control(state, brightness):
     print(f"Setting LED: {state} at {brightness}%")
     # 实际硬件控制代码
@@ -29,6 +44,8 @@ with open('config.json') as f:
     config = ujson.load(f)
     fun_config = config['functions']
     wifi_config = config['WIFI']
+
+ap_start(**wifi_config["ap"])
 
 
 # 网页生成函数

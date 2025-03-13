@@ -3,7 +3,7 @@
 #esp.osdebug(None)
 #import webrepl
 #webrepl.start()
-import network
+#import network
 
 # from lib.wifi import connect_wifi
 #
@@ -20,7 +20,7 @@ import network
 #     # 处理连接失败的情况
 #     print("请检查 Wi-Fi 配置或信号强度")
 
-ap = network.WLAN(network.AP_IF)
-ap.active(True)
-ap.config(essid='ESP-AP', password='00000000', authmode=3)
-print("网络配置:", ap.ifconfig())
+# ap = network.WLAN(network.AP_IF)
+# ap.active(True)
+# ap.config(essid='ESP-AP', password='00000000', authmode=3)
+# print("网络配置:", ap.ifconfig())
