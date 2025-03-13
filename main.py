@@ -25,6 +25,8 @@ def restart():
 # 加载配置文件
 with open('config.json') as f:
     config = ujson.load(f)
+    fun_config = config['functions']
+    wifi_config = config['WIFI']
 
 
 # 网页生成函数
@@ -123,22 +125,23 @@ def generate_html():
             .then(t => document.getElementById(id).innerHTML = t)
         }}
     </script></head><body>"""
-    
-    for group_id, group in config.items():
+
+    for group_id, group in fun_config.items():
         html += f'<div class="group"><h3>🔹 {group["name"].upper()}</h3>'
-        
+
         if group['type'] == 'function':
             html += f'<form action="/{group_id}" method="post">'
             for i, param in enumerate(group['data']):
                 html += f'<input type="text" name="arg{i}" placeholder="{param}"><br>'
             html += '<input type="submit" value="Run"></form>'
-            
+
         elif group['type'] == 'show':
             html += f'<div class="output" id="{group_id}">Loading...</div>'
             html += f'<script>setInterval(() => updateShow("{group_id}"), 1000)</script>'
-            
+
         html += '</div>'
     return html + "</body></html>"
+
 
 # 网络服务
 def start_webserver():
@@ -152,25 +155,25 @@ def start_webserver():
     while True:
         conn, addr = s.accept()
         request = conn.recv(1024).decode()
-        
+
         # 路由处理
         if request.startswith('GET /'):
             if request.startswith('GET /show/'):
                 group_id = request.split('/show/')[1].split()[0]
-                func = globals()[config[group_id]['name']]
+                func = globals()[fun_config[group_id]['name']]
                 result = str(func())
                 conn.send('HTTP/1.1 200 OK\nContent-Type: text/plain; charset=utf-8\n\n' + result)
             else:
                 conn.send('HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\n' + generate_html())
-        
+
         # 修改后的POST处理部分
         elif request.startswith('POST /'):
             group_id = request.split()[1].split('/')[1]
-            
+
             # 分离headers和body
             header_body = request.split('\r\n\r\n', 1)
             body = header_body[1] if len(header_body) > 1 else ''
-            
+
             # 解析POST参数
             params = {}
             if body:
@@ -179,19 +182,31 @@ def start_webserver():
                     if '=' in pair:
                         key, value = pair.split('=', 1)  # 只分割第一个等号
                         params[key] = value
-            
+
             # 构建参数列表（带默认值）
-            expected_args = len(config[group_id]['data'])
+            expected_args = len(fun_config[group_id]['data'])
             args = [params.get(f'arg{i}', '') for i in range(expected_args)]
-            
+
             # 执行对应函数
-            func = globals()[config[group_id]['name']]
-            try:
-                func(*args)
-            except TypeError as e:
-                print("参数错误:", e)
-            
-            conn.send('HTTP/1.1 303 See Other\nLocation: /\n\n')        
+            func = globals()[fun_config[group_id]['name']]
+
+            # 特殊处理重启函数
+            if func == restart:
+                # 先发送重定向响应
+                conn.send('HTTP/1.1 303 See Other\r\nLocation: /\r\nConnection: close\r\n\r\n')
+                conn.close()
+                # 留出时间确保响应发送
+                utime.sleep_ms(300)
+                # 执行重启
+                machine.reset()
+            else:
+                try:
+                    func(*args)
+                    conn.send('HTTP/1.1 303 See Other\r\nLocation: /\r\n\r\n')
+                except TypeError as e:
+                    print("参数错误:", e)
+
         conn.close()
+
 
 start_webserver()
