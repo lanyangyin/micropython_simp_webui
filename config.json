@@ -1,5 +1,5 @@
 {
-    "function_list": ["led_control", "get_temperature", "restart"],
+    "function_list": ["led_control", "get_temperature", "restart", "test"],
     "functions": {
         "led_control": {
             "name": "led_control",
@@ -15,6 +15,11 @@
             "name": "restart",
             "data": [],
             "type": "function"
+        },
+        "test": {
+            "name": "test",
+            "data": ["number"],
+            "type": "rut"
         }
     },
     "WIFI": {
@@ -22,8 +27,8 @@
             {"ssid": "", "password": ""}
         ],
         "ap": {
-            "ssid": "your_ap_ssid",
-            "password": "your_ap_password",
+            "ssid": "ESP_AP",
+            "password": "00000000",
             "encryption": "WPA2"
         }
     }

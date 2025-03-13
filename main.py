@@ -20,6 +20,10 @@ def restart():
     machine.reset()
 
 
+def test(number):
+    return str(number)
+
+
 # 加载配置文件
 with open('config.json') as f:
     config = ujson.load(f)
@@ -117,15 +121,31 @@ def generate_html():
         }
     </style>
     <script>
-        function updateShow(id) {{
+        function updateShow(id) {
             fetch('/show/' + id)
             .then(r => r.text())
             .then(t => document.getElementById(id).innerHTML = t)
-        }}
+        }
+        
+        function handleRutSubmit(event, groupId) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const params = new URLSearchParams();
+            for (const [key, value] of formData) {
+                params.append(key, value);
+            }
+            fetch('/' + groupId, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: params
+            })
+            .then(r => r.text())
+            .then(t => document.getElementById(groupId + '_result').value = t)
+        }
     </script></head><body>"""
+
     for group_id in config['function_list']:
         group = fun_config[group_id]
-    # for group_id, group in fun_config.items():
         html += f'<div class="group"><h3>🔹 {group["name"].upper()}</h3>'
 
         if group['type'] == 'function':
@@ -137,6 +157,13 @@ def generate_html():
         elif group['type'] == 'show':
             html += f'<div class="output" id="{group_id}">Loading...</div>'
             html += f'<script>setInterval(() => updateShow("{group_id}"), 1000)</script>'
+
+        elif group['type'] == 'rut':
+            html += f'<form onsubmit="handleRutSubmit(event, \'{group_id}\')">'
+            for i, param in enumerate(group['data']):
+                html += f'<input type="text" name="arg{i}" placeholder="{param}"><br>'
+            html += '<input type="submit" value="Run">'
+            html += f'<br><input type="text" id="{group_id}_result" readonly></form>'
 
         html += '</div>'
     return html + "</body></html>"
@@ -170,9 +197,9 @@ def start_webserver():
             else:
                 conn.send('HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\n' + generate_html())
 
-        # 修改后的POST处理部分
         elif request.startswith('POST /'):
             group_id = request.split()[1].split('/')[1]
+            group = fun_config[group_id]
 
             # 分离headers和body
             header_body = request.split('\r\n\r\n', 1)
@@ -184,31 +211,35 @@ def start_webserver():
                 pairs = body.split('&')
                 for pair in pairs:
                     if '=' in pair:
-                        key, value = pair.split('=', 1)  # 只分割第一个等号
+                        key, value = pair.split('=', 1)
                         params[key] = value
 
             # 构建参数列表（带默认值）
-            expected_args = len(fun_config[group_id]['data'])
+            expected_args = len(group['data'])
             args = [params.get(f'arg{i}', '') for i in range(expected_args)]
 
             # 执行对应函数
-            func = globals()[fun_config[group_id]['name']]
+            func = globals()[group['name']]
 
-            # 特殊处理重启函数
-            if func == restart:
-                # 先发送重定向响应
-                conn.send('HTTP/1.1 303 See Other\r\nLocation: /\r\nConnection: close\r\n\r\n')
-                conn.close()
-                # 留出时间确保响应发送
-                utime.sleep_ms(300)
-                # 执行重启
-                machine.reset()
-            else:
+            if group['type'] == 'rut':
                 try:
-                    func(*args)
-                    conn.send('HTTP/1.1 303 See Other\r\nLocation: /\r\n\r\n')
-                except TypeError as e:
-                    print("参数错误:", e)
+                    result = func(*args)
+                    conn.send(f'HTTP/1.1 200 OK\nContent-Type: text/plain\n\n{result}')
+                except Exception as e:
+                    conn.send(f'HTTP/1.1 500 Error\n\n{str(e)}')
+            else:
+                # 特殊处理重启函数
+                if func == restart:
+                    conn.send('HTTP/1.1 303 See Other\r\nLocation: /\r\nConnection: close\r\n\r\n')
+                    conn.close()
+                    utime.sleep_ms(300)
+                    machine.reset()
+                else:
+                    try:
+                        func(*args)
+                        conn.send('HTTP/1.1 303 See Other\r\nLocation: /\r\n\r\n')
+                    except TypeError as e:
+                        print("参数错误:", e)
 
         conn.close()
 
