@@ -1,0 +1,17 @@
+{
+    "group1": {
+        "name": "led_control",
+        "data": ["state", "brightness"],
+        "type": "function"
+    },
+    "group2": {
+        "name": "get_temperature",
+        "data": [],
+        "type": "show"
+    },
+    "group3": {
+        "name": "restart",
+        "data": [],
+        "type": "function"
+    }
+}
