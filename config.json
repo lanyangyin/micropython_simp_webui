@@ -1,5 +1,10 @@
 {
-    "function_list": ["led_control", "test", "get_temperature", "restart"],
+    "function_list": [
+        "led_control",
+        "test",
+        "get_temperature",
+        "restart"
+    ],
     "functions": {
         "led_control": {
             "name": "led_control",
