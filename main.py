@@ -14,6 +14,24 @@ AUTH_MODES = {
 }
 
 
+# 新增URL解码函数
+def unquote(s):
+    """简易URL解码实现"""
+    parts = s.split('%')
+    res = [parts[0]]
+    for part in parts[1:]:
+        if len(part) >= 2:
+            hex_code = part[:2]
+            try:
+                res.append(bytes([int(hex_code, 16)]).decode('latin-1'))
+                res.append(part[2:])
+            except:
+                res.append('%' + part)
+        else:
+            res.append('%' + part)
+    return ''.join(res)
+
+
 # 预定义函数示例（需与config.json中的name对应）
 def ap_start(ssid, password, encryption):
     ap = network.WLAN(network.AP_IF)
@@ -37,6 +55,50 @@ def restart():
 
 def test(number):
     return str(number)
+
+
+# 在预定义函数区域添加
+def reorder_functions(new_order):
+    """
+    功能排序调整函数
+    :param new_order: 逗号分隔的功能ID字符串（如"test,led_control"），空字符串表示获取当前顺序
+    :return: 当前顺序字符串 | "已完成" | 错误信息
+    """
+    original_list = config['function_list']
+    original_set = set(original_list)
+
+    if not new_order.strip():
+        return ",".join(original_list)
+
+    try:
+        # 处理解码后的输入
+        new_list = [x.strip() for x in new_order.split(',') if x.strip()]
+
+        # 完整校验（包括重复项）
+        if len(new_list) != len(original_list):
+            return f"错误：元素数量不符（应有{len(original_list)}个）"
+
+        new_set = set(new_list)
+        if new_set != original_set:
+            missing = original_set - new_set
+            extra = new_set - original_set
+            return f"错误：缺少{','.join(missing)}，多余{','.join(extra)}"
+
+        duplicates = {x for x in new_list if new_list.count(x) > 1}
+        if duplicates:
+            return f"错误：重复元素{','.join(duplicates)}"
+
+        if new_list == original_list:
+            return "顺序未改变"
+
+        # 更新配置
+        config['function_list'] = new_list
+        with open('config.json', 'w') as f:
+            ujson.dump(config, f)
+        return "已完成"
+
+    except Exception as e:
+        return f"处理错误：{str(e)}"
 
 
 # 加载配置文件
@@ -229,7 +291,9 @@ def start_webserver():
                 for pair in pairs:
                     if '=' in pair:
                         key, value = pair.split('=', 1)
-                        params[key] = value
+                        # 解码处理
+                        decoded_value = unquote(value.replace('+', ' '))  # 同时处理空格编码
+                        params[key] = decoded_value
 
             # 构建参数列表（带默认值）
             expected_args = len(group['data'])

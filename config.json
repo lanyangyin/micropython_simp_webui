@@ -3,9 +3,15 @@
         "led_control",
         "test",
         "get_temperature",
-        "restart"
+        "restart",
+        "reorder_functions"
     ],
     "functions": {
+        "reorder_functions": {
+            "name": "reorder_functions",
+            "data": ["new_order"],
+            "type": "rut"
+        },
         "led_control": {
             "name": "led_control",
             "data": ["state", "brightness"],
