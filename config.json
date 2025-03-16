@@ -1,12 +1,50 @@
 {
     "function_list": [
+        "wifi_status",
+        "get_temperature",
+        "reorder_functions",
         "led_control",
         "test",
-        "get_temperature",
+        "update_ap_config",
+        "sta_status",
+        "update_sta_config",
         "restart",
-        "reorder_functions"
+        "wifi_scan",
+        "scan_status",
+        "add_config_function",
+        "sta_start"
     ],
     "functions": {
+        "add_config_function": {
+            "name": "add_config_function",
+            "data": ["new_id", "function_name"],
+            "type": "rut"
+        },
+        "wifi_scan": {
+            "name": "async_scan_wifi",
+            "data": [],
+            "type": "rut"
+        },
+        "sta_start": {
+            "name": "sta_start",
+            "data": ["ssid", "password"],
+            "type": "rut"
+        },
+        "scan_status": {
+            "name": "scan_status",
+            "data": [],
+            "type": "show"
+        },
+        "update_ap_config": {
+            "name": "update_ap_config",
+            "data": ["ssid", "OPEN/WPA/WPA2", "password"],
+            "type": "rut"
+        },
+        "wifi_status": {
+            "name": "wifi_status",
+            "data": [],
+            "type": "show"
+        },
         "reorder_functions": {
             "name": "reorder_functions",
             "data": ["new_order"],
@@ -30,6 +68,16 @@
         "test": {
             "name": "test",
             "data": ["number"],
+            "type": "rut"
+        },
+        "sta_status": {
+            "name": "sta_status",
+            "data": [],
+            "type": "show"
+        },
+        "update_sta_config": {
+            "name": "update_sta_config",
+            "data": ["WiFi名称", "WiFi密码"],
             "type": "rut"
         }
     },
